@@ -5,114 +5,68 @@
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
   View,
+  ImageBackground,
+  TextInput,
+  ActivityIndicator,
+  Text,
 } from 'react-native';
+import axios from 'axios';
+import {API_PROPS} from './constrants/constants';
+import {styles} from './styles/styles';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+function App(): React.JSX.Element {
+  const [location, setLocation] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [weatherDetails, setWeatherDetails] = useState();
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  const fetchDataHandler = useCallback(() => {
+    setLoading(true);
+    setLocation('');
+    axios
+      .get(
+        `${API_PROPS.BASE}weather?q=${location}&units=metric&appid=${API_PROPS.KEY}`,
+      )
+      .then(res => {
+        setWeatherDetails(res.data);
+      })
+      .catch(err => console.dir(err))
+      .finally(() => setLoading(false));
+  }, [location]);
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    <View style={styles.root}>
+      <ImageBackground
+        source={require('./assets/backgroundHot.jpg')}
+        resizeMode="cover"
+        style={styles.image}>
+        <View>
+          <TextInput
+            placeholder="Enter city name"
+            onChangeText={text => setLocation(text)}
+            value={location}
+            placeholderTextColor={'#000'}
+            style={styles.textInput}
+            onSubmitEditing={fetchDataHandler}
+          />
+        </View>
+        {loading && (
+          <View>
+            <ActivityIndicator size={'large'} color="#000" />
+          </View>
+        )}
+        {weatherDetails && (
+          <View style={styles.infoView}>
+            <Text style={styles.location}>{`${weatherDetails?.name}, ${weatherDetails?.sys?.country}`}</Text>
+            <Text style={styles.date}>{new Date().toLocaleDateString()}</Text>
+            <Text style={styles.temperature}>{`${Math.round(weatherDetails?.main?.temp)} °C`}</Text>
+          </View>
+        )}
+      </ImageBackground>
     </View>
   );
 }
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;
