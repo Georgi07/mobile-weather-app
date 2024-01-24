@@ -1,0 +1,4 @@
+react-native run-android --verbose
+abd devices
+abd connect 192.168.1.5
+abd -s 192.168.1.5 disconnect

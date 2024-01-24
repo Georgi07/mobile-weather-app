@@ -5,67 +5,40 @@
  * @format
  */
 
-import React, {useCallback, useState} from 'react';
-import {
-  View,
-  ImageBackground,
-  TextInput,
-  ActivityIndicator,
-  Text,
-} from 'react-native';
-import axios from 'axios';
-import {API_PROPS} from './constrants/constants';
-import {styles} from './styles/styles';
+import React from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import Weather from './pages/Weather';
+import Home from './pages/Home';
+
+const Tab = createBottomTabNavigator();
+
+const MyTabs = () => {
+  return (
+    <Tab.Navigator
+      tabBarOptions={{
+        style: {
+          position: 'absolute',
+          bottom: 25,
+          left: 20,
+          right: 20,
+          elevation: 0,
+          backgroundColor: '#ffffff',
+          borderRadius: 15,
+          height: 90,
+        },
+      }}>
+      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="Weather" component={Weather} />
+    </Tab.Navigator>
+  );
+};
 
 function App(): React.JSX.Element {
-  const [location, setLocation] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [weatherDetails, setWeatherDetails] = useState();
-
-  const fetchDataHandler = useCallback(() => {
-    setLoading(true);
-    setLocation('');
-    axios
-      .get(
-        `${API_PROPS.BASE}weather?q=${location}&units=metric&appid=${API_PROPS.KEY}`,
-      )
-      .then(res => {
-        setWeatherDetails(res.data);
-      })
-      .catch(err => console.dir(err))
-      .finally(() => setLoading(false));
-  }, [location]);
-
   return (
-    <View style={styles.root}>
-      <ImageBackground
-        source={require('./assets/backgroundHot.jpg')}
-        resizeMode="cover"
-        style={styles.image}>
-        <View>
-          <TextInput
-            placeholder="Enter city name"
-            onChangeText={text => setLocation(text)}
-            value={location}
-            placeholderTextColor={'#000'}
-            style={styles.textInput}
-            onSubmitEditing={fetchDataHandler}
-          />
-        </View>
-        {loading && (
-          <View>
-            <ActivityIndicator size={'large'} color="#000" />
-          </View>
-        )}
-        {weatherDetails && (
-          <View style={styles.infoView}>
-            <Text style={styles.location}>{`${weatherDetails?.name}, ${weatherDetails?.sys?.country}`}</Text>
-            <Text style={styles.date}>{new Date().toLocaleDateString()}</Text>
-            <Text style={styles.temperature}>{`${Math.round(weatherDetails?.main?.temp)} °C`}</Text>
-          </View>
-        )}
-      </ImageBackground>
-    </View>
+    <NavigationContainer>
+      <MyTabs />
+    </NavigationContainer>
   );
 }
 
